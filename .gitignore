@@ -1,0 +1,10 @@
+# Terraform state and internal cache
+/infra/.terraform/
+/infra/terraform.tfstate
+/infra/terraform.tfstate.backup
+
+# Optional: sensitive or local-use variable files
+/infra/*.tfvars
+
+# Optional: debug logs
+/infra/*.log
