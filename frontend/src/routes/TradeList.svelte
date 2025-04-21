@@ -1,5 +1,8 @@
 <script>
-    import { mockTrades } from "../mock/trades.js";
+    import { get } from "svelte/store";
+    import { trades } from "../stores/trades";
+
+    let tradeList = get(trades);
 </script>
 
 <h2>Me trades</h2>
@@ -17,7 +20,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each mockTrades as trade}
+        {#each tradeList as trade}
             <tr>
                 <td>{trade.symbol}</td>
                 <td>{trade.direction}</td>

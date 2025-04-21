@@ -1,27 +1,31 @@
 <script>
-    import { createEventDispatcher } from "svelte";
-
-    const dispatch = createEventDispatcher();
+    import { get } from "svelte/store";
+    import { trades } from "../stores/trades";
 
     let trade = {
+        id: null,
         symbol: "",
         direction: "",
-        entry_price: "",
-        size: "",
-        leverage: "",
+        entry_price: null,
+        size: null,
+        leverage: null,
         exchange: "",
         notes: "",
     };
 
     const submit = () => {
-        dispatch("submitTrade", { ...trade });
+        let tradeId =
+            get(trades).reduce((max, t) => (t.id > max ? t.id : max), 0) + 1;
+        trade.id = tradeId;
+        trades.update((current) => [...current, trade]);
         // Clear form
         trade = {
+            id: null,
             symbol: "",
             direction: "",
-            entry_price: "",
-            size: "",
-            leverage: "",
+            entry_price: null,
+            size: null,
+            leverage: null,
             exchange: "",
             notes: "",
         };
@@ -38,6 +42,7 @@
     </select>
     <input
         type="number"
+        step="any"
         placeholder="Entry price"
         bind:value={trade.entry_price}
     />

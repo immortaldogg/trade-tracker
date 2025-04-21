@@ -1,16 +1,30 @@
 <script>
-  import TradeList from "./components/TradeList.svelte";
-  import TradeForm from "./components/TradeForm.svelte";
+  import Router from "svelte-spa-router";
+  import { location } from "svelte-spa-router";
+  import wrap from "svelte-spa-router/wrap";
+  import Navbar from "./components/Navbar.svelte";
 
-  const handleNewTrade = (eh) => {
-    console.log(eh);
+  const routes = {
+    "/": wrap({
+      asyncComponent: () => import("./routes/TradeList.svelte"),
+    }),
+    "/trades": wrap({
+      asyncComponent: () => import("./routes/TradeList.svelte"),
+    }),
+    "/trade/new": wrap({
+      asyncComponent: () => import("./routes/TradeForm.svelte"),
+    }),
+    "/trade/:id": wrap({
+      asyncComponent: () => import("./routes/TradeDetail.svelte"),
+    }),
   };
+  $: console.log("Current route:", $location);
 </script>
 
 <main>
   <h1>Trade Tracker UI</h1>
-  <TradeList />
-  <TradeForm on:submitTrade={handleNewTrade} />
+  <Navbar />
+  <Router {routes} />
 </main>
 
 <style>
