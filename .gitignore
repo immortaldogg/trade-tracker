@@ -8,3 +8,6 @@
 
 # Optional: debug logs
 /infra/*.log
+
+# virtual env
+/backend/venv
