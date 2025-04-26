@@ -22,6 +22,9 @@ class Trade(Base):
     # Timestamps
     entry_time = Column(DateTime, default=datetime.utcnow)  # Time of trade entry
     exit_time = Column(DateTime, nullable=True)              # Optional exit time
-
+    
     # Notes or additional info
     notes = Column(String)            # Optional notes field
+
+    # Result of the trade
+    result = Column(String, nullable=True)

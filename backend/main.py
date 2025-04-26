@@ -1,67 +1,42 @@
-# Import FastAPI framework and dependency injection helper
-from fastapi import FastAPI, Depends
-
-# Import database session manager
+from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from database import Base, engine, get_db
+from schemas import TradeCreate, TradeOut, TradeUpdate
+from crud import *
 
-# Import Pydantic for request data validation
-from pydantic import BaseModel
-
-# Import database setup and engine
-from database import SessionLocal, engine
-
-# Import SQLAlchemy base and the Trade model (DB table)
-from models import Base, Trade
+import models
+# Create the database tables (if not already created)
+Base.metadata.create_all(bind=engine)
 
 # Create a new FastAPI app instance
 app = FastAPI()
 
-# Create the database tables (if not already created)
-Base.metadata.create_all(bind=engine)
+@app.post("/trade", response_model=TradeOut)
+def create(trade: TradeCreate, db: Session = Depends(get_db)):
+    return create_trade(db, trade)
 
-# Define the expected structure of a trade input via API
-class TradeInput(BaseModel):
-    symbol: str          # e.g., "BTCUSDT"
-    direction: str       # "long" or "short"
-    entry_price: float   # e.g., 26000.50
-    size: float          # position size in USD
-    leverage: int        # leverage used, e.g. 5
-    exchange: str        # e.g., "Binance"
-    notes: str = ""      # optional notes
+@app.get("/trades", response_model=list[TradeOut])
+def read_all(db: Session = Depends(get_db)):
+    return get_all_trades(db)
 
-# Create a dependency that returns a new DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db          # gives access to a live DB session
-    finally:
-        db.close()        # always close the session after use
+@app.get("/trade/{id}", response_model=TradeOut)
+def read(id: int, db: Session = Depends(get_db)):
+    trade = get_trade(db, id)
+    if trade is None:
+        raise HTTPException(404, f"Trade {id} not found")
+    return trade
 
-# Create a POST endpoint at /trades to save new trade entries
-@app.post("/trades")
-def create_trade(
-    trade: TradeInput,               # validated input data
-    db: Session = Depends(get_db)   # inject a live DB session
-):
-    # Convert validated input to a Trade DB model instance
-    db_trade = Trade(**trade.dict())
+@app.put("/trade/{id}", response_model=TradeOut)
+def update(id: int, trade_data: TradeUpdate, db: Session = Depends(get_db)):
+    trade = get_trade(db, id)
+    if not trade:
+        raise HTTPException(404, f"Trade {id} not found")
+    return update_trade(db, trade, trade_data)
 
-    # Add the trade to the session (staged for saving)
-    db.add(db_trade)
-
-    # Commit the trade to the database (permanently saved)
-    db.commit()
-
-    # Refresh the object to get updated fields (like auto-generated ID)
-    db.refresh(db_trade)
-
-    # Return the newly created trade as JSON response
-    return db_trade
-
-# Create a GET endpoint at /trades to ge tall trades
-@app.get("/trades")
-def get_trades(
-    db: Session = Depends(get_db)
-):
-    trades = db.query(Trade).all()
-    return trades
+@app.delete("/trade/{id}")
+def delete(id: int, db: Session = Depends(get_db)):
+    trade = get_trade(db, id)
+    if not trade:
+        raise HTTPException(404, f"Trade {id} not found")
+    delete_trade(db, trade)
+    return {"deleted": id}
