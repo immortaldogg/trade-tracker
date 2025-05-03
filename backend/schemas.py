@@ -27,5 +27,6 @@ class TradeUpdate(BaseModel):
 class TradeOut(TradeBase):
     id: int
 
-    class Config:
-        orm_mode = True
+    # need some research on this
+    # class Config:
+    #     orm_mode = True

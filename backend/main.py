@@ -5,8 +5,10 @@ from schemas import TradeCreate, TradeOut, TradeUpdate
 from crud import *
 
 import models
+  # this loads .env into os.environ
+
 # Create the database tables (if not already created)
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 # Create a new FastAPI app instance
 app = FastAPI()
@@ -19,7 +21,7 @@ def create(trade: TradeCreate, db: Session = Depends(get_db)):
 def read_all(db: Session = Depends(get_db)):
     return get_all_trades(db)
 
-@app.get("/trade/{id}", response_model=TradeOut)
+@app.get("/trade/{id}")
 def read(id: int, db: Session = Depends(get_db)):
     trade = get_trade(db, id)
     if trade is None:
