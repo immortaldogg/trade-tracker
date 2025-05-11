@@ -10,12 +10,8 @@ variable "my_ip" {
   type        = string
 }
 
-variable "DB_ENDPOINT" {
-  type    = string
-}
-
 variable "DB_USER" {
-  type    = string
+  type = string
 }
 
 variable "DB_PASSWORD" {
@@ -47,7 +43,7 @@ resource "aws_ssm_parameter" "DB_PASSWORD" {
 resource "aws_ssm_parameter" "DB_HOST" {
   name  = "/trade-tracker/DB_HOST"
   type  = "SecureString"
-  value = var.DB_ENDPOINT
+  value = aws_db_instance.postgres.endpoint
 }
 
 # ----------------------
@@ -153,16 +149,16 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier              = "trade-tracker-db"
-  engine                  = "postgres"
-  instance_class          = "db.t3.micro"
-  allocated_storage       = 20
-  username                = var.DB_USER
-  password                = var.DB_PASSWORD
-  publicly_accessible     = false
-  skip_final_snapshot     = true
-  db_subnet_group_name    = aws_db_subnet_group.default.name
-  vpc_security_group_ids  = [aws_security_group.db_sg.id]
+  identifier             = "trade-tracker-db"
+  engine                 = "postgres"
+  instance_class         = "db.t3.micro"
+  allocated_storage      = 20
+  username               = var.DB_USER
+  password               = var.DB_PASSWORD
+  publicly_accessible    = false
+  skip_final_snapshot    = true
+  db_subnet_group_name   = aws_db_subnet_group.default.name
+  vpc_security_group_ids = [aws_security_group.db_sg.id]
 }
 
 # ----------------------
