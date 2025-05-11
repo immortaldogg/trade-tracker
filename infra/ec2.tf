@@ -11,6 +11,7 @@ resource "aws_instance" "backend" {
   key_name                    = aws_key_pair.backend_key.key_name
   associate_public_ip_address = true
 
+  user_data = file("bootup_backend.sh")
   tags = {
     Name = "backend-server"
   }
