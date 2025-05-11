@@ -43,7 +43,13 @@ resource "aws_ssm_parameter" "DB_PASSWORD" {
 resource "aws_ssm_parameter" "DB_HOST" {
   name  = "/trade-tracker/DB_HOST"
   type  = "SecureString"
-  value = aws_db_instance.postgres.endpoint
+  value = aws_db_instance.postgres.address
+}
+
+resource "aws_ssm_parameter" "DB_PORT" {
+  name  = "/trade-tracker/DB_PORT"
+  type  = "SecureString"
+  value = aws_db_instance.postgres.port
 }
 
 # ----------------------
@@ -141,7 +147,7 @@ resource "aws_security_group" "db_sg" {
 # ----------------------
 resource "aws_db_subnet_group" "default" {
   name       = "trade-db-subnet-group"
-  subnet_ids = [aws_subnet.public.id] # Simplified: using public subnet for now
+  subnet_ids = [aws_subnet.public_a.id, aws_subnet.public_b.id] # Simplified: using public subnet for now
 
   tags = {
     Name = "trade-db-subnet-group"
@@ -172,7 +178,7 @@ resource "aws_key_pair" "backend_key" {
 resource "aws_instance" "backend" {
   ami                         = "ami-0c02fb55956c7d316"
   instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.public.id
+  subnet_id                   = aws_subnet.public_a.id
   vpc_security_group_ids      = [aws_security_group.backend_sg.id]
   key_name                    = aws_key_pair.backend_key.key_name
   associate_public_ip_address = true
@@ -196,14 +202,25 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_subnet" "public" {
+resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = "10.0.10.0/24"
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet"
+    Name = "public-subnet-a"
+  }
+}
+
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.20.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "public-subnet-b"
   }
 }
 
@@ -228,8 +245,13 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public.id
 }
 
